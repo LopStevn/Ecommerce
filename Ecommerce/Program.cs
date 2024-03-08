@@ -1,4 +1,5 @@
 using Ecommerce.Models.DATA;
+using Ecommerce.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,9 @@ builder.Services.AddDbContext<EcommerceDbContext>(o =>
 {
     o.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL"));
 });
+
+builder.Services.AddScoped<IServicioImagen, ServicioImagen>();
+builder.Services.AddScoped<IServicioLista, ServicioLista>();
 
 var app = builder.Build();
 
