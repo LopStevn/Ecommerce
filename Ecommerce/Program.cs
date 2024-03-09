@@ -1,5 +1,7 @@
 using Ecommerce.Models.DATA;
+using Ecommerce.Models.EN;
 using Ecommerce.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,11 +13,35 @@ builder.Services.AddDbContext<EcommerceDbContext>(o =>
 {
     o.UseSqlServer(builder.Configuration.GetConnectionString("CadenaSQL"));
 });
-
+builder.Services.AddTransient<SeedDb>();
 builder.Services.AddScoped<IServicioImagen, ServicioImagen>();
 builder.Services.AddScoped<IServicioLista, ServicioLista>();
 
+builder.Services.AddIdentity<Usuario, IdentityRole>(cfg =>
+{
+    cfg.User.RequireUniqueEmail = true;
+    cfg.Password.RequireDigit = true;
+    cfg.Password.RequiredUniqueChars = 0;
+    cfg.Password.RequireLowercase = false;
+    cfg.Password.RequireNonAlphanumeric = false;
+    cfg.Password.RequireUppercase = false;
+}).AddEntityFrameworkStores<EcommerceDbContext>();
+
+builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
+
 var app = builder.Build();
+
+SeedData(app);
+
+void SeedData(WebApplication app)
+{
+    IServiceScopeFactory scopeFactory = app.Services.GetService<IServiceScopeFactory>();
+    using(IServiceScope Scope = scopeFactory.CreateScope())
+    {
+        SeedDb service = Scope.ServiceProvider.GetService<SeedDb>();
+        service.SeedAsync().Wait();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -30,6 +56,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
