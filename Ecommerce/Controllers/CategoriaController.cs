@@ -1,10 +1,13 @@
 ﻿using Ecommerce.Models.DATA;
 using Ecommerce.Models.EN;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Controllers
 {
+    [Authorize(Roles = "Administrador")]
+
     public class CategoriaController : Controller
     {
         private readonly EcommerceDbContext _context;
