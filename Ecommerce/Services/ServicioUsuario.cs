@@ -37,6 +37,30 @@ namespace Ecommerce.Services
             return await _userManager.CreateAsync(usuario, password);
         }
 
+        public async Task<Usuario> CrearUsuario(UsuarioViewModel model)
+        {
+            Usuario usuario = new Usuario()
+            {
+                Email = model.Username,
+                Nombre = model.Nombre,
+                URLFoto = model.URLFoto,
+                PhoneNumber = model.PhoneNumber,
+                UserName = model.Username,
+                TipoUsuario = model.TipoUsuario
+            };
+
+            IdentityResult result = await _userManager.CreateAsync(usuario, model.Password);
+
+            if(result != IdentityResult.Success)
+            {
+                return null;
+            }
+
+            Usuario nuevoUsuario = await ObtenerUsuario(model.UserName);
+            await AsignarRol(nuevoUsuario, usuario.TipoUsuario.ToString());
+            return nuevoUsuario;
+        }
+
         public async Task<SignInResult> IniciarSesion(LoginViewModel model)
         {
             return await _signInManager.PasswordSignInAsync(

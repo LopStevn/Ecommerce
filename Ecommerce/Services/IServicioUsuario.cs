@@ -19,5 +19,7 @@ namespace Ecommerce.Services
         Task<SignInResult> IniciarSesion(LoginViewModel model);
 
         Task CerrarSesion();
+
+        Task<Usuario> CrearUsuario(UsuarioViewModel model);
     }
 }
