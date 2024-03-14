@@ -101,5 +101,81 @@ namespace Ecommerce.Controllers
 
             return View(model);
         }
+
+        public async Task<IActionResult> EditarUsuario()
+        {
+            Usuario usuario = await _servicioUsuario.ObtenerUsuario(User.Identity.Name);
+
+            if(usuario == null)
+            {
+                return NotFound();
+            }
+
+            Usuario model = new()
+            {
+                Nombre = usuario.Nombre,
+                PhoneNumber = usuario.PhoneNumber,
+                URLFoto = usuario.URLFoto,
+                Id = usuario.Id
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditarUsuario(Usuario model, IFormFile Imagen)
+        {
+            if (ModelState.IsValid)
+            {
+                Usuario usuario = await _servicioUsuario.ObtenerUsuario(User.Identity.Name);
+                usuario.Nombre = model.Nombre;
+                usuario.PhoneNumber = model.PhoneNumber;
+
+                Stream image = Imagen.OpenReadStream();
+                string URLImagen = await _servicioImagen.SubirImagen(image, Imagen.FileName);
+
+                usuario.URLFoto = URLImagen;
+
+                await _servicioUsuario.ActualizarUsuario(usuario);
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View(model);
+        }
+
+        public IActionResult CambiarPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CambiarPassword(PasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var usuario = await _servicioUsuario.ObtenerUsuario(User.Identity.Name);
+                
+                if(usuario != null)
+                {
+                    var result = await _servicioUsuario.CambiarPassword(usuario, model.OldPassword, model.NewPassword);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("EditarUsuario");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault().Description);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Usuario no encontrado.");
+                }
+
+            }
+            return View(model);
+        }
+
     }
 }
